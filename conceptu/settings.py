@@ -11,9 +11,10 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+from pathlib import Path
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Build paths inside the project like this: BASE_DIR / 'subdir'
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
@@ -24,11 +25,8 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'i7v=ry2mk(gkab47rq+=n@4zjdkxldb*l7a4l
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else ['*']
-# Remove empty strings from ALLOWED_HOSTS
-ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS if host.strip()]
-if not ALLOWED_HOSTS:
-    ALLOWED_HOSTS = ['*']
+# ALLOWED HOSTS
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -77,47 +75,25 @@ TEMPLATES = [
 WSGI_APPLICATION = 'conceptu.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/2.1/ref/settings/#databases
+# PostgreSQL Database
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'mydb',
+#         'USER': 'myuser',
+#         'PASSWORD': 'mypassword',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
 
-# Database configuration
-# Use environment variable for database URL if available (for Render PostgreSQL)
-# Otherwise, fall back to SQLite
-# On Render, use /tmp for SQLite to ensure write permissions
-db_path = os.environ.get('DATABASE_URL')
-if db_path:
-    try:
-        import dj_database_url
-        DATABASES = {
-            'default': dj_database_url.config(
-                default=db_path,
-                conn_max_age=600
-            )
-        }
-    except ImportError:
-        # Fallback if dj_database_url is not available
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-            }
-        }
-else:
-    # For Render free tier, use /tmp directory for SQLite
-    # This ensures write permissions
-    # Check if we're on Render by checking for RENDER environment or hostname
-    is_render = os.environ.get('RENDER') or 'onrender.com' in os.environ.get('RENDER_EXTERNAL_HOSTNAME', '')
-    if is_render:
-        db_file = '/tmp/db.sqlite3'
-    else:
-        db_file = os.path.join(BASE_DIR, 'db.sqlite3')
-    
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': db_file,
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
+}
+
 
 
 # Password validation
@@ -158,11 +134,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-# Extra places for collectstatic to find static files.
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
-)
 
 # WhiteNoise configuration for static files
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
